@@ -4,20 +4,8 @@ from django.utils.http import is_safe_url
 from pkg_resources import parse_version
 
 from django_saml2_auth import utils
-from django_saml2_auth.plugins import PluginMeta
-from django_saml2_auth.views import idp_denied, _get_saml_client
-
-
-class SigninPluginMeta(PluginMeta):
-    NAME = None
-    # make sure metadata plugins are "local" to SigninPlugin despite parent Metaclass
-    _plugins = {}
-
-
-class SigninPlugin(object, metaclass=SigninPluginMeta):
-
-    def signin(self, request):
-        raise NotImplementedError
+from django_saml2_auth.plugins import SigninPlugin
+from django_saml2_auth.views import _get_saml_client, error
 
 
 class DefaultSigninPlugin(SigninPlugin):
@@ -28,6 +16,7 @@ class DefaultSigninPlugin(SigninPlugin):
         except:
             import urllib.parse as _urlparse
             from urllib.parse import unquote
+
         next_url = request.GET.get('next', utils._default_next_url())
 
         try:
@@ -43,7 +32,7 @@ class DefaultSigninPlugin(SigninPlugin):
             url_ok = is_safe_url(next_url)
 
         if not url_ok:
-            return HttpResponseRedirect(utils.get_reverse([idp_denied, 'denied', 'django_saml2_auth:denied']))
+            local_error(request)
 
         request.session['login_next_url'] = next_url
 

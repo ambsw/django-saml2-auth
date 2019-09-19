@@ -4,20 +4,8 @@ from django.contrib.auth.models import Group
 from pkg_resources import parse_version
 
 # default User or custom User. Now both will work.
-from django_saml2_auth.plugins import PluginMeta
+from django_saml2_auth.plugins import CreateUserPlugin
 from django_saml2_auth.utils import User
-
-
-class CreateUserPluginMeta(PluginMeta):
-    NAME = None
-    # make sure metadata plugins are "local" to MetadataPluginMeta even though we share the parent architecture
-    _plugins = {}
-
-
-class CreateUserPlugin(object, metaclass=CreateUserPluginMeta):
-
-    def create_user(self, username, email, firstname, lastname):
-        raise NotImplementedError
 
 
 class DefaultCreateUser(CreateUserPlugin):

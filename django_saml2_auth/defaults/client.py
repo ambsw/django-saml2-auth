@@ -1,26 +1,15 @@
+from django.conf import settings
 from saml2 import (
     BINDING_HTTP_POST,
     BINDING_HTTP_REDIRECT,
 )
 
 from django_saml2_auth import utils
-from django_saml2_auth.plugins import PluginMeta
+from django_saml2_auth.plugins import SamlClientPlugin
 from django_saml2_auth.views import _get_metadata, acs
 
 
-class ClientPluginMeta(PluginMeta):
-    NAME = None
-    # make sure metadata plugins are "local" to ClientPlugin despite parent Metaclass
-    _plugins = {}
-
-
-class ClientPlugin(object, metaclass=ClientPluginMeta):
-
-    def get_client(self, domain):
-        raise NotImplementedError
-
-
-class DefaultClientPlugin(ClientPlugin):
+class DefaultSamlClientPlugin(SamlClientPlugin):
 
     def get_client(self, domain):
         acs_url = domain + utils.get_reverse({acs, 'acs', 'django_saml2_auth:acs'})

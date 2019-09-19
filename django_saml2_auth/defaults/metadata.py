@@ -1,18 +1,6 @@
 from django.conf import settings
 
-from django_saml2_auth.plugins import PluginMeta
-
-
-class MetadataPluginMeta(PluginMeta):
-    NAME = None
-    # make sure metadata plugins are "local" to MetadataPluginMeta even though we share the parent architecture
-    _plugins = {}
-
-
-class MetadataPlugin(object, metaclass=MetadataPluginMeta):
-
-    def get_metadata(self):
-        raise NotImplementedError
+from django_saml2_auth.plugins import MetadataPlugin
 
 
 class DefaultMetadataHandler(MetadataPlugin):

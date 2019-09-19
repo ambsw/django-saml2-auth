@@ -3,19 +3,7 @@ from django.shortcuts import render
 from django.template import TemplateDoesNotExist
 
 from django_saml2_auth import utils
-from django_saml2_auth.plugins import PluginMeta
-
-
-class ApprovedPluginMeta(PluginMeta):
-    NAME = None
-    # make sure metadata plugins are "local" to ApprovedPlugin despite parent Metaclass
-    _plugins = {}
-
-
-class ApprovedPlugin(object, metaclass=ApprovedPluginMeta):
-
-    def approved(self, request):
-        raise NotImplementedError
+from django_saml2_auth.plugins import ApprovedPlugin
 
 
 class DefaultApprovedPlugin(ApprovedPlugin):

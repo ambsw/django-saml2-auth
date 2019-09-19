@@ -11,4 +11,4 @@ class DefaultApprovedPlugin(ApprovedPlugin):
         try:
             return render(request, 'django_saml2_auth/welcome.html', {'user': request.user})
         except TemplateDoesNotExist:
-            return HttpResponseRedirect(utils._default_next_url())
+            return HttpResponseRedirect(utils.default_next_url())

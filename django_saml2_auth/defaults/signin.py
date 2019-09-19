@@ -7,32 +7,34 @@ from django_saml2_auth import utils
 from django_saml2_auth.plugins import SigninPlugin
 from django_saml2_auth.views import _get_saml_client, error
 
+try:
+    import urlparse as _urlparse
+    from urllib import unquote
+except:
+    import urllib.parse as _urlparse
+    from urllib.parse import unquote
+
 
 class DefaultSigninPlugin(SigninPlugin):
+    """Redirect a user to the IdP with an appropriate payload"""
     def signin(self, request):
-        try:
-            import urlparse as _urlparse
-            from urllib import unquote
-        except:
-            import urllib.parse as _urlparse
-            from urllib.parse import unquote
 
-        next_url = request.GET.get('next', utils._default_next_url())
+        next_url = request.GET.get('next', utils.default_next_url())
 
         try:
             if 'next=' in unquote(next_url):
                 next_url = _urlparse.parse_qs(_urlparse.urlparse(unquote(next_url)).query)['next'][0]
         except:
-            next_url = request.GET.get('next', utils._default_next_url())
+            pass
 
         # Only permit signin requests where the next_url is a safe URL
         if parse_version(get_version()) >= parse_version('2.0'):
-            url_ok = is_safe_url(next_url, None)
+            args = (next_url, None)
         else:
-            url_ok = is_safe_url(next_url)
+            args = (next_url)
 
-        if not url_ok:
-            local_error(request)
+        if not is_safe_url(*args):
+            error(request)
 
         request.session['login_next_url'] = next_url
 

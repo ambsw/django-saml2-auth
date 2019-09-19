@@ -6,7 +6,7 @@ from django.template import TemplateDoesNotExist
 from rest_auth.utils import jwt_encode
 
 from django_saml2_auth.plugins import AcsPlugin
-from django_saml2_auth.utils import _default_next_url
+from django_saml2_auth.utils import default_next_url
 from django_saml2_auth.views import idp_denied, error, _get_user, local_denied, IdpDenied, IdpError
 
 
@@ -25,7 +25,7 @@ class DefaultAcsPlugin(AcsPlugin):
             else:
                 return local_denied(request)
 
-            next_url = request.session.get('login_next_url', _default_next_url())
+            next_url = request.session.get('login_next_url', default_next_url())
 
             if settings.SAML2_AUTH.get('USE_JWT') is True:
                 # We use JWT auth send token to frontend

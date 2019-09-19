@@ -6,7 +6,7 @@ from pkg_resources import parse_version
 User = get_user_model()
 
 
-def _default_next_url():
+def default_next_url():
     if 'DEFAULT_NEXT_URL' in settings.SAML2_AUTH:
         return settings.SAML2_AUTH['DEFAULT_NEXT_URL']
     # Lazily evaluate this in case we don't have admin loaded.

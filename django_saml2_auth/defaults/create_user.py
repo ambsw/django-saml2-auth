@@ -10,7 +10,10 @@ from django_saml2_auth.utils import User
 
 class DefaultCreateUser(CreateUserPlugin):
     """Create a user based on the values in the kwargs"""
-    def create_user(self, kwargs):
+    NAME = 'DEFAULT'
+
+    @classmethod
+    def create_user(cls, kwargs):
         user = User.objects.create(**kwargs)
         # legacy create behavior
         groups = [Group.objects.get(name=x) for x in

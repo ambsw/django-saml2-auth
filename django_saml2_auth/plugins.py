@@ -21,7 +21,8 @@ class SigninPluginMeta(PluginMeta):
 
 class SigninPlugin(object, metaclass=SigninPluginMeta):
     """Handles the login action, usually by redirecting a user to the IdP with an appropriate payload."""
-    def signin(self, request):
+    @classmethod
+    def signin(cls, request):
         raise NotImplementedError
 
 
@@ -33,7 +34,8 @@ class SignoutPluginMeta(PluginMeta):
 
 class SignoutPlugin(object, metaclass=SignoutPluginMeta):
     """Handles the logout action, including cascading to SLO if configured."""
-    def signout(self, request):
+    @classmethod
+    def signout(cls, request):
         raise NotImplementedError
 
 
@@ -45,7 +47,8 @@ class SamlPayloadPluginMeta(PluginMeta):
 
 class SamlPayloadPlugin(object, metaclass=SamlPayloadPluginMeta):
     """Handles a client request with a SAML payload according to the particular payload semantics."""
-    def handle_saml_payload(self, request):
+    @classmethod
+    def handle_saml_payload(cls, request):
         raise NotImplementedError
 
 
@@ -57,7 +60,8 @@ class ApprovedPluginMeta(PluginMeta):
 
 class ApprovedPlugin(object, metaclass=ApprovedPluginMeta):
     """Redirects a user after a successful login."""
-    def approved(self, request):
+    @classmethod
+    def approved(cls, request, user, new_user=False):
         raise NotImplementedError
 
 
@@ -69,7 +73,8 @@ class IdpDeniedPluginMeta(PluginMeta):
 
 class IdpDeniedPlugin(object, metaclass=IdpDeniedPluginMeta):
     """Redirects a user after a failed login rejected by the IdP."""
-    def denied(self, request, reason=None):
+    @classmethod
+    def denied(cls, request, reason=None):
         raise NotImplementedError
 
 
@@ -81,7 +86,8 @@ class LocalDeniedPluginMeta(PluginMeta):
 
 class LocalDeniedPlugin(object, metaclass=LocalDeniedPluginMeta):
     """Redirects a user after a failed login due to a local constraint like a deactivated account."""
-    def denied(self, request, reason=None):
+    @classmethod
+    def denied(cls, request, reason=None):
         raise NotImplementedError
 
 
@@ -93,7 +99,8 @@ class ErrorPluginMeta(PluginMeta):
 
 class ErrorPlugin(object, metaclass=ErrorPluginMeta):
     """Redirects a user after an error has occurred."""
-    def error(self, request, reason=None):
+    @classmethod
+    def error(cls, request, reason=None):
         raise NotImplementedError
 
 
@@ -105,7 +112,8 @@ class GetUserPluginMeta(PluginMeta):
 
 class GetUserPlugin(object, metaclass=GetUserPluginMeta):
     """Handles a SAML login by returning the local user for that request."""
-    def get_user(self, request):
+    @classmethod
+    def get_user(cls, request):
         raise NotImplementedError
 
 
@@ -117,7 +125,8 @@ class CreateUserPluginMeta(PluginMeta):
 
 class CreateUserPlugin(object, metaclass=CreateUserPluginMeta):
     """Handles a request to create a new user."""
-    def create_user(self, kwargs):
+    @classmethod
+    def create_user(cls, kwargs):
         raise NotImplementedError
 
 
@@ -129,7 +138,8 @@ class MetadataPluginMeta(PluginMeta):
 
 class MetadataPlugin(object, metaclass=MetadataPluginMeta):
     """Provides the SAML metadata to be used for initializing a SAML Client."""
-    def get_metadata(self):
+    @classmethod
+    def get_metadata(cls):
         raise NotImplementedError
 
 
@@ -141,5 +151,6 @@ class SamlClientPluginMeta(PluginMeta):
 
 class SamlClientPlugin(object, metaclass=SamlClientPluginMeta):
     """Returns a SAML client based on the domain and the metadata returned by the MetadataPlugin"""
-    def get_client(self, domain):
+    @classmethod
+    def get_client(cls, domain):
         raise NotImplementedError

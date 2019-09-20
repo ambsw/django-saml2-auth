@@ -17,7 +17,10 @@ except:
 
 class DefaultSigninPlugin(SigninPlugin):
     """Redirect a user to the IdP with an appropriate payload"""
-    def signin(self, request):
+    NAME = 'DEFAULT'
+
+    @classmethod
+    def signin(cls, request):
 
         next_url = request.GET.get('next', utils.default_next_url())
 
@@ -31,7 +34,7 @@ class DefaultSigninPlugin(SigninPlugin):
         if parse_version(get_version()) >= parse_version('2.0'):
             args = (next_url, None)
         else:
-            args = (next_url)
+            args = (next_url,)
 
         if not is_safe_url(*args):
             error(request)

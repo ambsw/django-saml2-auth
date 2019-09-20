@@ -12,8 +12,10 @@ from django_saml2_auth.views import _get_metadata, handle_saml_payload
 
 
 class DefaultSamlClientPlugin(SamlClientPlugin):
+    NAME = 'DEFAULT'
 
-    def get_client(self, domain):
+    @classmethod
+    def get_client(cls, domain):
         acs_url = domain + utils.get_reverse({handle_saml_payload, 'acs', 'django_saml2_auth:acs'})
         metadata = _get_metadata()
 

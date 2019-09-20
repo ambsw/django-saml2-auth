@@ -9,7 +9,10 @@ from django_saml2_auth.views import idp_denied, _create_new_user, error, _get_sa
 
 
 class DefaultGetUserPlugin(GetUserPlugin):
-    def get_user(self, request):
+    NAME = 'DEFAULT'
+
+    @classmethod
+    def get_user(cls, request):
         saml_client = _get_saml_client(utils.get_current_domain(request))
         resp = request.POST.get('SAMLResponse', None)
 
@@ -31,7 +34,6 @@ class DefaultGetUserPlugin(GetUserPlugin):
         user_last_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('last_name', 'LastName')][0]
 
         is_new_user = False
-        import django.contrib.auth.models
 
         try:
             target_user = User.objects.get(username=user_name)
@@ -50,8 +52,5 @@ class DefaultGetUserPlugin(GetUserPlugin):
                 is_new_user = True
             else:
                 return idp_denied(request)
-
-        if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
-            import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
 
         return target_user, is_new_user

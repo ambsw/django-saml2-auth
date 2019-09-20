@@ -6,7 +6,8 @@ from django_saml2_auth.plugins import MetadataPlugin
 class DefaultMetadataHandler(MetadataPlugin):
     NAME = 'DEFAULT'
 
-    def get_metadata(self):
+    @classmethod
+    def get_metadata(cls):
         if 'METADATA_LOCAL_FILE_PATH' in settings.SAML2_AUTH:
             return {
                 'local': [settings.SAML2_AUTH['METADATA_LOCAL_FILE_PATH']]

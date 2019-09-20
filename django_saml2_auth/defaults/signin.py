@@ -4,8 +4,9 @@ from django.utils.http import is_safe_url
 from pkg_resources import parse_version
 
 from django_saml2_auth import utils
+from django_saml2_auth.errors import LocalDenied
 from django_saml2_auth.plugins import SigninPlugin
-from django_saml2_auth.views import _get_saml_client, _error
+from django_saml2_auth.views import _get_saml_client, _local_denied
 
 try:
     import urlparse as _urlparse
@@ -37,7 +38,7 @@ class DefaultSigninPlugin(SigninPlugin):
             args = (next_url,)
 
         if not is_safe_url(*args):
-            _error(request)
+            return _local_denied(request)
 
         request.session['login_next_url'] = next_url
 

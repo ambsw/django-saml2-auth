@@ -74,7 +74,7 @@ class IdpErrorPluginMeta(PluginMeta):
 class IdpErrorPlugin(object, metaclass=IdpErrorPluginMeta):
     """Redirects a user after a failed login rejected by the IdP."""
     @classmethod
-    def denied(cls, request, reason=None):
+    def error(cls, request, reason=None):
         raise NotImplementedError
 
 

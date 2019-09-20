@@ -3,9 +3,9 @@ from django.contrib.auth import login
 from django.utils.module_loading import import_string
 
 from django_saml2_auth import signals
-from django_saml2_auth.errors import SamlError, IdpDenied
+from django_saml2_auth.errors import LocalDenied, IdpError
 from django_saml2_auth.plugins import SamlPayloadPlugin
-from django_saml2_auth.views import _idp_error, _error, _get_user, _local_denied, _approved
+from django_saml2_auth.views import _idp_error, _get_user, _local_denied, _approved
 
 
 class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
@@ -20,19 +20,19 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
 
             request.session.flush()
 
-            if target_user.is_active:
-                target_user.backend = 'django.contrib.auth.backends.ModelBackend'
+            if not target_user.is_active:
+                raise LocalDenied("User is not active.")
 
-                if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
-                    import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(target_user)
+            target_user.backend = 'django.contrib.auth.backends.ModelBackend'
 
-                signals.before_login.call(target_user)
-                login(request, target_user)
-                signals.after_login.call(target_user)
-            else:
-                return _local_denied(request)
+            if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
+                import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(target_user)
+
+            signals.before_login.call(target_user)
+            login(request, target_user)
+            signals.after_login.call(target_user)
             return _approved(request, target_user)
-        except IdpDenied:
-            return _idp_error(request)
-        except SamlError:
-            return _error(request)
+        except IdpError as e:
+            return _idp_error(request, e)
+        except LocalDenied as e:
+            return _local_denied(request, e)

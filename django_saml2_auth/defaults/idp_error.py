@@ -5,9 +5,9 @@ from django_saml2_auth.plugins import IdpErrorPlugin
 from django_saml2_auth.views import _idp_error
 
 
-class DefaultErrorPlugin(IdpErrorPlugin):
+class DefaultIdpErrorPlugin(IdpErrorPlugin):
     NAME = 'DEFAULT'
 
     @classmethod
-    def denied(cls, request, reason=None):
+    def error(cls, request, reason=None):
         return HttpResponseRedirect(utils.get_reverse([_idp_error, 'denied', 'django_saml2_auth:denied']))

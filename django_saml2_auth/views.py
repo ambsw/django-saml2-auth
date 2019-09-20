@@ -38,7 +38,7 @@ from django_saml2_auth.utils import _handle_plugins
 
 try:
     import urllib2 as _urllib
-except:
+except ImportError:
     import urllib.request as _urllib
     import urllib.error
     import urllib.parse
@@ -109,36 +109,25 @@ def _approved(request):
     )
 
 
-def _error(request, reason=None):
-    """Generate response to be returned to sender due to an error"""
-    signals.before_error.send(_create_new_user, request, reason)
-    return _handle_plugins(
-        'CREATE_USER',
-        plugins=plugins.ErrorPlugin,
-        method_name=plugins.ErrorPlugin.error.__name__,
-        args=(request, reason)
-    )
-
-
-def _idp_error(request):
+def _idp_error(request, reason=None):
     """Generate response to be returned to sender when the IdP denies the authentication"""
     signals.before_idp_denied.send(_create_new_user, request)
     return _handle_plugins(
         'IDP_DENIED',
         plugins=plugins.IdpErrorPlugin,
-        method_name=plugins.IdpErrorPlugin.denied.__name__,
-        args=(request,)
+        method_name=plugins.IdpErrorPlugin.error.__name__,
+        args=(request, reason)
     )
 
 
-def _local_denied(request):
+def _local_denied(request, reason=None):
     """Generate response to be returned to sender when the local application denies the authentication"""
     signals.before_local_denied.send(_create_new_user, request)
     return _handle_plugins(
         'LOCAL_DENIED',
         plugins=plugins.LocalDeniedPlugin,
         method_name=plugins.LocalDeniedPlugin.denied.__name__,
-        args=(request,)
+        args=(request, reason)
     )
 
 

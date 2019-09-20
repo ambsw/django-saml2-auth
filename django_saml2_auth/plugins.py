@@ -65,13 +65,13 @@ class ApprovedPlugin(object, metaclass=ApprovedPluginMeta):
         raise NotImplementedError
 
 
-class IdpDeniedPluginMeta(PluginMeta):
+class IdpErrorPluginMeta(PluginMeta):
     NAME = None
     # make sure metadata plugins are "local" to DeniedPlugin despite parent Metaclass
     _plugins = {}
 
 
-class IdpDeniedPlugin(object, metaclass=IdpDeniedPluginMeta):
+class IdpErrorPlugin(object, metaclass=IdpErrorPluginMeta):
     """Redirects a user after a failed login rejected by the IdP."""
     @classmethod
     def denied(cls, request, reason=None):

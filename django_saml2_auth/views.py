@@ -5,23 +5,27 @@ The standard internal workflow for django_saml2_auth is:
 
  1. Login request triggers _signin() which redirects the user to the IdP with an appropriate payload
     - If next= was sent to this view, it's cached in the session under login_next_view
- 2. IdP response is relayed (by the client) to _handle_saml_payload().  This method will
-    1. Call _error() if the IdP request is malformed
-    2. Call _idp_denied() if the IdP request doesn't identify a user
-    3. Get the indicted user using _get_user()
-       - If a user does not exist and user creation is allowed, _get_user() will call _create_user()
-    4. Call _local_denied() if the user returned by _get_user is not allowed to login locally
-    5. Call _approved() if the user has been authenticated successfully
+ 2. The IdP response is relayed (by the client) to _handle_saml_payload().  This method will
+    1. Call _get_user() to convert the payload into a user.  _get_user() will:
+       1. Call _error if no SAMLResponse is found
+       2. Call _get_saml_client() -- which calls _get_metadata() -- to get a SAML parser
+       3. Call _idp_error() if the IdP request is malformed
+       4. Extract user attributes using ATTRIBUTES_MAP
+       5. If a user does not exist and user creation is allowed, call _create_user()
+       6. If a user does not exist and user creation is NOT allowed, call _local_denied()
+    2. Call _local_denied() if the user returned by _get_user is not allowed to login locally
+    2. Call _approved() if the user has been authenticated successfully
  3. Approved will redirect the user based on several conditions:
-    1. If JWT is enabled, it will construct a JWT token and forward to the FRONTEND
+    1. If USE_JWT is enabled, it will construct a JWT token and redirect to the first available of:
+       1. FRONTEND_URL
+       2. login_next_url from the signin request
+       3. default_next_url() i.e. DEFAULT_URL or admin:index
     2. If the user was newly created (and the welcome template exists), the user will be redirected to welcome_view()
     3. If login_next_view was set in _signin(), the user will be redirected there
     4. Otherwise, the user will be redirected to DEFAULT_NEXT_URL
  4. Logout requests trigger _signout()
     1. After the user is logged out, they are redirected to signout_view()
 """
-
-
 from django import get_version
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
@@ -29,7 +33,6 @@ from django.views.decorators.csrf import csrf_exempt
 from pkg_resources import parse_version
 
 from django_saml2_auth import plugins, signals
-
 # default User or custom User. Now both will work.
 from django_saml2_auth.utils import _handle_plugins
 
@@ -117,13 +120,13 @@ def _error(request, reason=None):
     )
 
 
-def _idp_denied(request):
+def _idp_error(request):
     """Generate response to be returned to sender when the IdP denies the authentication"""
     signals.before_idp_denied.send(_create_new_user, request)
     return _handle_plugins(
         'IDP_DENIED',
-        plugins=plugins.IdpDeniedPlugin,
-        method_name=plugins.IdpDeniedPlugin.denied.__name__,
+        plugins=plugins.IdpErrorPlugin,
+        method_name=plugins.IdpErrorPlugin.denied.__name__,
         args=(request,)
     )
 

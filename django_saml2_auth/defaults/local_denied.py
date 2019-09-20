@@ -1,5 +1,5 @@
 from django_saml2_auth.plugins import LocalDeniedPlugin
-from django_saml2_auth.views import _idp_denied
+from django_saml2_auth.views import _idp_error
 
 
 class DefaultLocalDeniedPlugin(LocalDeniedPlugin):
@@ -9,4 +9,4 @@ class DefaultLocalDeniedPlugin(LocalDeniedPlugin):
     @classmethod
     def denied(cls, request, reason=None):
         """replicate original behavior"""
-        return _idp_denied(request)
+        return _idp_error(request)

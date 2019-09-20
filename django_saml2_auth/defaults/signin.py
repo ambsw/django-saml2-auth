@@ -5,7 +5,7 @@ from pkg_resources import parse_version
 
 from django_saml2_auth import utils
 from django_saml2_auth.plugins import SigninPlugin
-from django_saml2_auth.views import _get_saml_client, error
+from django_saml2_auth.views import _get_saml_client, _error
 
 try:
     import urlparse as _urlparse
@@ -37,7 +37,7 @@ class DefaultSigninPlugin(SigninPlugin):
             args = (next_url,)
 
         if not is_safe_url(*args):
-            error(request)
+            _error(request)
 
         request.session['login_next_url'] = next_url
 

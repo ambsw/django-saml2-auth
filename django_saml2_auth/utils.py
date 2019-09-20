@@ -1,6 +1,7 @@
 from django import get_version
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ImproperlyConfigured
 from pkg_resources import parse_version
 
 User = get_user_model()
@@ -13,12 +14,12 @@ def default_next_url():
     return get_reverse('admin:index')
 
 
-def get_current_domain(r):
+def get_current_domain(request):
     if 'ASSERTION_URL' in settings.SAML2_AUTH:
         return settings.SAML2_AUTH['ASSERTION_URL']
     return '{scheme}://{host}'.format(
-        scheme='https' if r.is_secure() else 'http',
-        host=r.get_host(),
+        scheme='https' if request.is_secure() else 'http',
+        host=request.get_host(),
     )
 
 
@@ -39,3 +40,15 @@ def get_reverse(objs):
     raise Exception(
         'We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(
             objs))
+
+
+def _handle_plugins(namespace, plugins, method_name, args=()):
+    """Generic plugin running architecture"""
+    for name in settings.SAML2_AUTH.get('PLUGINS', {}).get(namespace, ['DEFAULT']):
+        plugin = plugins.get_plugin(name=name)
+        if plugin is None:
+            raise ImproperlyConfigured("SAML2 auth cannot find {} with key:  {}".format(plugins.__name__, plugin))
+        response = getattr(plugin, method_name)(*args)
+        if response is not None:
+            return response
+    raise ImproperlyConfigured("{} plugins did not return a valid object".format(plugins.__name__))

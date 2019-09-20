@@ -4,7 +4,8 @@ from django.utils.module_loading import import_string
 
 from django_saml2_auth import signals
 from django_saml2_auth.plugins import SamlPayloadPlugin
-from django_saml2_auth.views import idp_denied, error, _get_user, local_denied, IdpDenied, SamlError, approved
+from django_saml2_auth.views import _idp_denied, _error, _get_user, _local_denied, _approved
+from django_saml2_auth.errors import SamlError, IdpDenied
 
 
 class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
@@ -29,9 +30,9 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
                 login(request, target_user)
                 signals.after_login.call(target_user)
             else:
-                return local_denied(request)
-            return approved(request, target_user)
+                return _local_denied(request)
+            return _approved(request, target_user)
         except IdpDenied:
-            return idp_denied(request)
+            return _idp_denied(request)
         except SamlError:
-            return error(request)
+            return _error(request)

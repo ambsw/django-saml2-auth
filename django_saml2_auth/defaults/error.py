@@ -1,5 +1,5 @@
 from django_saml2_auth.plugins import ErrorPlugin
-from django_saml2_auth.views import idp_denied
+from django_saml2_auth.views import _idp_denied
 
 
 class DefaultErrorPlugin(ErrorPlugin):
@@ -8,4 +8,4 @@ class DefaultErrorPlugin(ErrorPlugin):
 
     @classmethod
     def error(cls, request, reason=None):
-        idp_denied(request)
+        _idp_denied(request)

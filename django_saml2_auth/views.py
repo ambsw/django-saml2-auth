@@ -1,11 +1,29 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+"""
+The standard internal workflow for django_saml2_auth is:
+
+ 1. Login request triggers _signin() which redirects the user to the IdP with an appropriate payload
+    - If next= was sent to this view, it's cached in the session under login_next_view
+ 2. IdP response is relayed (by the client) to _handle_saml_payload().  This method will
+    1. Call _error() if the IdP request is malformed
+    2. Call _idp_denied() if the IdP request doesn't identify a user
+    3. Get the indicted user using _get_user()
+       - If a user does not exist and user creation is allowed, _get_user() will call _create_user()
+    4. Call _local_denied() if the user returned by _get_user is not allowed to login locally
+    5. Call _approved() if the user has been authenticated successfully
+ 3. Approved will redirect the user based on several conditions:
+    1. If JWT is enabled, it will construct a JWT token and forward to the FRONTEND
+    2. If the user was newly created (and the welcome template exists), the user will be redirected to welcome_view()
+    3. If login_next_view was set in _signin(), the user will be redirected there
+    4. Otherwise, the user will be redirected to DEFAULT_NEXT_URL
+ 4. Logout requests trigger _signout()
+    1. After the user is logged out, they are redirected to signout_view()
+"""
 
 
 from django import get_version
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from pkg_resources import parse_version
@@ -13,6 +31,7 @@ from pkg_resources import parse_version
 from django_saml2_auth import plugins, signals
 
 # default User or custom User. Now both will work.
+from django_saml2_auth.utils import _handle_plugins
 
 try:
     import urllib2 as _urllib
@@ -43,22 +62,32 @@ def error_view(request):
     return render(request, 'django_saml2_auth/error.html')
 
 
-def run_plugins(namespace, plugins, method_name, args=()):
-    """Generic plugin running architecture"""
-    for name in settings.SAML2_AUTH.get('PLUGINS', {}).get(namespace, ['DEFAULT']):
-        plugin = plugins.get_plugin(name=name)
-        if plugin is None:
-            raise ImproperlyConfigured("SAML2 auth cannot find {} with key:  {}".format(plugins.__name__, plugin))
-        response = getattr(plugin, method_name)(*args)
-        if response is not None:
-            return response
-    raise ImproperlyConfigured("{} plugins did not return a valid object".format(plugins.__name__))
+def signin(request):
+    """Handles login requests, usually by redirecting users to the SAML IdP"""
+    signals.before_signin.send(signin, request)
+    return _handle_plugins(
+        'SIGNIN',
+        plugins=plugins.SigninPlugin,
+        method_name=plugins.SigninPlugin.signin.__name__,
+        args=(request,)
+    )
+
+
+def signout(request):
+    """Handles a logout request locally and may or may not forward to IdP"""
+    signals.before_signout.send(signin, request)
+    return _handle_plugins(
+        'SIGNIN',
+        plugins=plugins.SignoutPlugin,
+        method_name=plugins.SignoutPlugin.signout.__name__,
+        args=(request,)
+    )
 
 
 @csrf_exempt
-def handle_saml_payload(request):
+def _handle_saml_payload(request):
     """Accepts and handles a request from an IDP, by default depending on _get_user"""
-    return run_plugins(
+    return _handle_plugins(
         'SIGNIN',
         plugins=plugins.SamlPayloadPlugin,
         method_name=plugins.SamlPayloadPlugin.handle_saml_payload.__name__,
@@ -67,9 +96,9 @@ def handle_saml_payload(request):
 
 
 @login_required
-def approved(request):
+def _approved(request):
     """Handles a successful authentication, including both IdP and local checks"""
-    return run_plugins(
+    return _handle_plugins(
         'CREATE_USER',
         plugins=plugins.ApprovedPlugin,
         method_name=plugins.ApprovedPlugin.approved.__name__,
@@ -77,14 +106,10 @@ def approved(request):
     )
 
 
-class SamlError(Exception):
-    """A standard way to indicate an Error when the plugin is not designed to return a Response"""
-
-
-def error(request, reason=None):
+def _error(request, reason=None):
     """Generate response to be returned to sender due to an error"""
     signals.before_error.send(_create_new_user, request, reason)
-    return run_plugins(
+    return _handle_plugins(
         'CREATE_USER',
         plugins=plugins.ErrorPlugin,
         method_name=plugins.ErrorPlugin.error.__name__,
@@ -92,15 +117,10 @@ def error(request, reason=None):
     )
 
 
-class IdpDenied(Exception):
-    """A standard way to indicate that authentication was denied by the IdP when the plugin is not designed to return a
-    Response"""
-
-
-def idp_denied(request):
+def _idp_denied(request):
     """Generate response to be returned to sender when the IdP denies the authentication"""
     signals.before_idp_denied.send(_create_new_user, request)
-    return run_plugins(
+    return _handle_plugins(
         'IDP_DENIED',
         plugins=plugins.IdpDeniedPlugin,
         method_name=plugins.IdpDeniedPlugin.denied.__name__,
@@ -108,10 +128,10 @@ def idp_denied(request):
     )
 
 
-def local_denied(request):
+def _local_denied(request):
     """Generate response to be returned to sender when the local application denies the authentication"""
     signals.before_local_denied.send(_create_new_user, request)
-    return run_plugins(
+    return _handle_plugins(
         'LOCAL_DENIED',
         plugins=plugins.LocalDeniedPlugin,
         method_name=plugins.LocalDeniedPlugin.denied.__name__,
@@ -122,7 +142,7 @@ def local_denied(request):
 def _get_user(request):
     """Gets the user from the SAML payload in the request usually using a client from _get_saml_client and handles
     missing users, including calling _create_new_user if appropriate"""
-    return run_plugins(
+    return _handle_plugins(
         'GET_USER',
         plugins=plugins.GetUserPlugin,
         method_name=plugins.GetUserPlugin.get_user.__name__,
@@ -132,7 +152,7 @@ def _get_user(request):
 
 def _get_saml_client(domain):
     """Genereate a class able to process SAML data, normally configured by _get_metadata"""
-    return run_plugins(
+    return _handle_plugins(
         'CREATE_USER',
         plugins=plugins.SamlClientPlugin,
         method_name=plugins.SamlClientPlugin.get_client.__name__,
@@ -142,7 +162,7 @@ def _get_saml_client(domain):
 
 def _get_metadata():
     """Constructs appropriate SAML metadata, usually based on the settings file"""
-    return run_plugins(
+    return _handle_plugins(
         'METADATA',
         plugins=plugins.MetadataPlugin,
         method_name=plugins.MetadataPlugin.get_metadata.__name__,
@@ -152,7 +172,7 @@ def _get_metadata():
 def _create_new_user(kwargs):
     """Creates a new user in the system based on User attributes in kwargs."""
     signals.before_create.send(_create_new_user, kwargs)  # intentionally mutable
-    user = run_plugins(
+    user = _handle_plugins(
         'CREATE_USER',
         plugins=plugins.CreateUserPlugin,
         method_name=plugins.CreateUserPlugin.create_user.__name__,
@@ -160,25 +180,3 @@ def _create_new_user(kwargs):
     )
     signals.after_create.send(_create_new_user, user)
     return user
-
-
-def signin(request):
-    """Handles login requests, by default redirecting users to the SAML IdP"""
-    signals.before_signin.send(signin, request)
-    return run_plugins(
-        'SIGNIN',
-        plugins=plugins.SigninPlugin,
-        method_name=plugins.SigninPlugin.signin.__name__,
-        args=(request,)
-    )
-
-
-def signout(request):
-    """Handlers a logout request."""
-    signals.before_signout.send(signin, request)
-    return run_plugins(
-        'SIGNIN',
-        plugins=plugins.SignoutPlugin,
-        method_name=plugins.SignoutPlugin.signout.__name__,
-        args=(request,)
-    )

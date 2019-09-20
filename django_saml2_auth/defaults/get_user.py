@@ -5,7 +5,7 @@ from saml2 import entity
 from django_saml2_auth import utils
 from django_saml2_auth.plugins import GetUserPlugin
 from django_saml2_auth.utils import User
-from django_saml2_auth.views import idp_denied, _create_new_user, error, _get_saml_client
+from django_saml2_auth.views import _idp_denied, _create_new_user, _error, _get_saml_client
 
 
 class DefaultGetUserPlugin(GetUserPlugin):
@@ -17,16 +17,16 @@ class DefaultGetUserPlugin(GetUserPlugin):
         resp = request.POST.get('SAMLResponse', None)
 
         if not resp:
-            error(request)
+            _error(request)
 
         authn_response = saml_client.parse_authn_request_response(
             resp, entity.BINDING_HTTP_POST)
         if authn_response is None:
-            error(request)
+            _error(request)
 
         user_identity = authn_response.get_identity()
         if user_identity is None:
-            idp_denied(request)
+            _idp_denied(request)
 
         user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
         user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('username', 'UserName')][0]
@@ -51,6 +51,6 @@ class DefaultGetUserPlugin(GetUserPlugin):
                     import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
                 is_new_user = True
             else:
-                return idp_denied(request)
+                return _idp_denied(request)
 
         return target_user, is_new_user

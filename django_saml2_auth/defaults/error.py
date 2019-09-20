@@ -4,5 +4,5 @@ from django_saml2_auth.views import idp_denied
 
 class DefaultErrorPlugin(ErrorPlugin):
     """By default, users were redirected to the standard denied page for any error."""
-    def error(self, request, error=None):
+    def error(self, request, reason=None):
         idp_denied(request)

@@ -72,13 +72,14 @@ class IdpError(Exception):
     pass
 
 
-def error(request, error=None):
+def error(request, reason=None):
     """Generate response to be returned to sender due to an error"""
+    signals.before_error.send(_create_new_user, request, reason)
     for name in settings.SAML2_AUTH.get('PLUGINS', {}).get('CREATE_USER', ['DEFAULT']):
         plugin = plugins.ErrorPlugin.get_plugin(name=name)
         if plugin is None:
             raise ImproperlyConfigured("SAML2 auth cannot find ErrorPlugin with key:  {}".format(plugin))
-        response = plugin.error(request, error)
+        response = plugin.error(request, reason)
         if response is not None:
             return response
     raise ImproperlyConfigured("Error plugins did not return user")
@@ -101,6 +102,7 @@ def idp_denied(request):
 
 
 def local_denied(request):
+    signals.before_local_denied.send(_create_new_user, request)
     for name in settings.SAML2_AUTH.get('PLUGINS', {}).get('CREATE_USER', ['DEFAULT']):
         plugin = plugins.LocalDeniedPlugin.get_plugin(name=name)
         if plugin is None:

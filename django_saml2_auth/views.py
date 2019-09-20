@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from pkg_resources import parse_version
 
-from django_saml2_auth import plugins
+from django_saml2_auth import plugins, signals
 
 # default User or custom User. Now both will work.
 
@@ -32,7 +32,7 @@ def signout_view(request):
 
 
 def welcome_view(request):
-    return render(request, 'django_saml2_auth/welcome.html')
+    return render(request, 'django_saml2_auth/welcome.html', {'user': request.user})
 
 
 def denied_view(request):
@@ -44,13 +44,13 @@ def error_view(request):
 
 
 @csrf_exempt
-def acs(request):
+def handle_saml_payload(request):
     """Accepts and handles a request from an IDP, by default depending on _get_user"""
     for name in settings.SAML2_AUTH.get('PLUGINS', {}).get('SIGNIN', ['DEFAULT']):
-        plugin = plugins.AcsPlugin.get_plugin(name=name)
+        plugin = plugins.SamlPayloadPlugin.get_plugin(name=name)
         if plugin is None:
             raise ImproperlyConfigured("SAML2 auth cannot find AcsPluginPlugin with key:  {}".format(plugin))
-        response = plugin.get_acs(request)
+        response = plugin.handle_saml_payload(request)
         if response is not None:
             return response
     raise ImproperlyConfigured("AcsPlugin plugins did not return user")
@@ -62,9 +62,9 @@ def idp_approved(request):
         plugin = plugins.ApprovedPlugin.get_plugin(name=name)
         if plugin is None:
             raise ImproperlyConfigured("SAML2 auth cannot find ApprovedPlugin with key:  {}".format(plugin))
-        user = plugin.approved(request)
-        if user is not None:
-            return user
+        response = plugin.approved(request)
+        if response is not None:
+            return response
     raise ImproperlyConfigured("Approved plugins did not return user")
 
 
@@ -72,14 +72,15 @@ class IdpError(Exception):
     pass
 
 
-def error(request):
+def error(request, error=None):
+    """Generate response to be returned to sender due to an error"""
     for name in settings.SAML2_AUTH.get('PLUGINS', {}).get('CREATE_USER', ['DEFAULT']):
         plugin = plugins.ErrorPlugin.get_plugin(name=name)
         if plugin is None:
             raise ImproperlyConfigured("SAML2 auth cannot find ErrorPlugin with key:  {}".format(plugin))
-        user = plugin.error(request)
-        if user is not None:
-            return user
+        response = plugin.error(request, error)
+        if response is not None:
+            return response
     raise ImproperlyConfigured("Error plugins did not return user")
 
 
@@ -88,14 +89,15 @@ class IdpDenied(Exception):
 
 
 def idp_denied(request):
+    signals.before_idp_denied.send(_create_new_user, request)
     for name in settings.SAML2_AUTH.get('PLUGINS', {}).get('CREATE_USER', ['DEFAULT']):
         plugin = plugins.IdpDeniedPlugin.get_plugin(name=name)
         if plugin is None:
             raise ImproperlyConfigured("SAML2 auth cannot find DeniedPlugin with key:  {}".format(plugin))
-        user = plugin.denied(request)
-        if user is not None:
-            return user
-    raise ImproperlyConfigured("Denied plugins did not return user")
+        response = plugin.denied(request)
+        if response is not None:
+            return response
+    raise ImproperlyConfigured("IdpDenied plugins did not return user")
 
 
 def local_denied(request):
@@ -103,20 +105,20 @@ def local_denied(request):
         plugin = plugins.LocalDeniedPlugin.get_plugin(name=name)
         if plugin is None:
             raise ImproperlyConfigured("SAML2 auth cannot find LocalDeniedPlugin with key:  {}".format(plugin))
-        user = plugin.denied(request)
-        if user is not None:
-            return user
+        response = plugin.denied(request)
+        if response is not None:
+            return response
     raise ImproperlyConfigured("LocalDenied plugins did not return user")
 
 
-def _get_user(user_identity):
-    """Gets the user based on a user_identity extracted from the SAML request, usually using a client from
-    _get_saml_client and creating missing users using _create_new_user"""
+def _get_user(request):
+    """Gets the user from the SAML request usually using a client from _get_saml_client and creating missing users
+    using _create_new_user"""
     for name in settings.SAML2_AUTH.get('PLUGINS', {}).get('CREATE_USER', ['DEFAULT']):
         plugin = plugins.GetUserPlugin.get_plugin(name=name)
         if plugin is None:
             raise ImproperlyConfigured("SAML2 auth cannot find GetUserPlugin with key:  {}".format(plugin))
-        user = plugin._get_user(user_identity)
+        user = plugin._get_user(request)
         if user is not None:
             return user
     raise ImproperlyConfigured("GetUser plugins did not return user")
@@ -146,16 +148,18 @@ def _get_metadata():
     raise ImproperlyConfigured("Metadata plugins did not return metadata")
 
 
-def _create_new_user(username, email, firstname, lastname):
+def _create_new_user(kwargs):
     """Creates a new user in the system."""
+    signals.before_create.send(_create_new_user, kwargs)  # intentionally mutable
     for name in settings.SAML2_AUTH.get('PLUGINS', {}).get('CREATE_USER', ['DEFAULT']):
         plugin = plugins.CreateUserPlugin.get_plugin(name=name)
         if plugin is None:
             raise ImproperlyConfigured("SAML2 auth cannot find CreateUserPlugin with key:  {}".format(plugin))
-        user = plugin.create_user(username, email, firstname, lastname)
+        user = plugin.create_user(kwargs)
         if user is not None:
+            signals.after_create.send(_create_new_user, user)
             return user
-    raise ImproperlyConfigured("CreateUser plugins did not return user")
+    raise ImproperlyConfigured("CreateUser did not return user")
 
 
 def signin(request):
@@ -167,7 +171,7 @@ def signin(request):
         response = plugin.signin(request)
         if response is not None:
             return response
-    raise ImproperlyConfigured("SigninPlugin plugins did not return user")
+    raise ImproperlyConfigured("Signin plugins did not return user")
 
 
 def signout(request):
@@ -179,4 +183,4 @@ def signout(request):
         response = plugin.singout(request)
         if response is not None:
             return response
-    raise ImproperlyConfigured("SignoutPlugin plugins did not return user")
+    raise ImproperlyConfigured("Signout plugins did not return user")

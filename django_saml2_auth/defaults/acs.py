@@ -5,16 +5,17 @@ from django.shortcuts import render
 from django.template import TemplateDoesNotExist
 from rest_auth.utils import jwt_encode
 
-from django_saml2_auth.plugins import AcsPlugin
+from django_saml2_auth.plugins import SamlPayloadPlugin
 from django_saml2_auth.utils import default_next_url
 from django_saml2_auth.views import idp_denied, error, _get_user, local_denied, IdpDenied, IdpError
 
 
-class DefaultAcsPlugin(AcsPlugin):
+class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
     """Authenticates user based on SAML object in request"""
 
-    def get_acs(self, request):
+    def handle_saml_payload(self, request):
         try:
+            # raises exceptions to achieve original response behavior
             target_user, is_new_user = _get_user(request)
 
             request.session.flush()

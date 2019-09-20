@@ -31,13 +31,20 @@ class DefaultGetUserPlugin(GetUserPlugin):
         user_last_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('last_name', 'LastName')][0]
 
         is_new_user = False
+        import django.contrib.auth.models
 
         try:
             target_user = User.objects.get(username=user_name)
         except User.DoesNotExist:
             new_user_should_be_created = settings.SAML2_AUTH.get('CREATE_USER', True)
             if new_user_should_be_created:
-                target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
+                kwargs = {
+                    'username': user_name,
+                    'email': user_email,
+                    'first_name': user_first_name,
+                    'last_name': user_last_name
+                }
+                target_user = _create_new_user(kwargs)
                 if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
                     import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
                 is_new_user = True

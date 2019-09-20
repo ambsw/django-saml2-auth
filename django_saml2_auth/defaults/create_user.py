@@ -9,10 +9,10 @@ from django_saml2_auth.utils import User
 
 
 class DefaultCreateUser(CreateUserPlugin):
-    def create_user(self, username, email, firstname, lastname):
-        user = User.objects.create_user(username, email)
-        user.first_name = firstname
-        user.last_name = lastname
+    """Create a user based on the values in the kwargs"""
+    def create_user(self, kwargs):
+        user = User.objects.create(**kwargs)
+        # legacy create behavior
         groups = [Group.objects.get(name=x) for x in
                   settings.SAML2_AUTH.get('NEW_USER_PROFILE', {}).get('USER_GROUPS', [])]
         if parse_version(get_version()) >= parse_version('2.0'):

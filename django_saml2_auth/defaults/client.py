@@ -3,16 +3,18 @@ from saml2 import (
     BINDING_HTTP_POST,
     BINDING_HTTP_REDIRECT,
 )
+from saml2.client import Saml2Client
+from saml2.config import Config as Saml2Config
 
 from django_saml2_auth import utils
 from django_saml2_auth.plugins import SamlClientPlugin
-from django_saml2_auth.views import _get_metadata, acs
+from django_saml2_auth.views import _get_metadata, handle_saml_payload
 
 
 class DefaultSamlClientPlugin(SamlClientPlugin):
 
     def get_client(self, domain):
-        acs_url = domain + utils.get_reverse({acs, 'acs', 'django_saml2_auth:acs'})
+        acs_url = domain + utils.get_reverse({handle_saml_payload, 'acs', 'django_saml2_auth:acs'})
         metadata = _get_metadata()
 
         saml_settings = {

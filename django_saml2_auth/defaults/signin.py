@@ -4,7 +4,6 @@ from django.utils.http import is_safe_url
 from pkg_resources import parse_version
 
 from django_saml2_auth import utils
-from django_saml2_auth.errors import LocalDenied
 from django_saml2_auth.plugins import SigninPlugin
 from django_saml2_auth.views import _get_saml_client, _local_denied
 

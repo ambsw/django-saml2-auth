@@ -5,7 +5,7 @@ from django_saml2_auth.views import signout_view
 
 
 class DefaultSignoutPlugin(SignoutPlugin):
-    NAME = 'DEFAULT'
+    KEY = 'DEFAULT'
 
     @classmethod
     def signout(cls, request):

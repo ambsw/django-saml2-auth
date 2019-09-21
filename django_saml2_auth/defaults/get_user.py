@@ -10,7 +10,7 @@ from django_saml2_auth.views import _get_saml_client, _create_new_user
 
 
 class DefaultGetUserPlugin(GetUserPlugin):
-    NAME = 'DEFAULT'
+    KEY = 'DEFAULT'
 
     @classmethod
     def get_user(cls, request):

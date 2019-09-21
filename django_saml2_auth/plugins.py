@@ -1,12 +1,13 @@
 class PluginMeta(type):
     # stores the plugins for this object
     _plugins = {}
-    NAME = None
+    # default key (i.e. that won't be stored)
+    KEY = None
 
     def __init__(cls, name, bases, dct):
         super(PluginMeta, cls).__init__(name, bases, dct)
-        if cls.NAME is not None:
-            cls._plugins[cls.NAME] = cls
+        if cls.KEY is not None:
+            cls._plugins[cls.KEY] = cls
 
     def get_plugin(cls, name):
         # validate class-dependent config
@@ -14,7 +15,6 @@ class PluginMeta(type):
 
 
 class SigninPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to SigninPlugin despite parent Metaclass
     _plugins = {}
 
@@ -27,7 +27,6 @@ class SigninPlugin(object, metaclass=SigninPluginMeta):
 
 
 class SignoutPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to SignoutPlugin despite parent Metaclass
     _plugins = {}
 
@@ -40,7 +39,6 @@ class SignoutPlugin(object, metaclass=SignoutPluginMeta):
 
 
 class SamlPayloadPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to AcsPlugin despite parent Metaclass
     _plugins = {}
 
@@ -53,7 +51,6 @@ class SamlPayloadPlugin(object, metaclass=SamlPayloadPluginMeta):
 
 
 class ApprovedPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to ApprovedPlugin despite parent Metaclass
     _plugins = {}
 
@@ -66,7 +63,6 @@ class ApprovedPlugin(object, metaclass=ApprovedPluginMeta):
 
 
 class IdpErrorPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to DeniedPlugin despite parent Metaclass
     _plugins = {}
 
@@ -79,7 +75,6 @@ class IdpErrorPlugin(object, metaclass=IdpErrorPluginMeta):
 
 
 class LocalDeniedPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to DeniedPlugin despite parent Metaclass
     _plugins = {}
 
@@ -92,7 +87,6 @@ class LocalDeniedPlugin(object, metaclass=LocalDeniedPluginMeta):
 
 
 class ErrorPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to ErrorPlugin despite parent Metaclass
     _plugins = {}
 
@@ -105,7 +99,6 @@ class ErrorPlugin(object, metaclass=ErrorPluginMeta):
 
 
 class GetUserPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to GetUserPlugin despite parent Metaclass
     _plugins = {}
 
@@ -118,7 +111,6 @@ class GetUserPlugin(object, metaclass=GetUserPluginMeta):
 
 
 class CreateUserPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to MetadataPluginMeta even though we share the parent architecture
     _plugins = {}
 
@@ -131,7 +123,6 @@ class CreateUserPlugin(object, metaclass=CreateUserPluginMeta):
 
 
 class MetadataPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to MetadataPluginMeta even though we share the parent architecture
     _plugins = {}
 
@@ -144,7 +135,6 @@ class MetadataPlugin(object, metaclass=MetadataPluginMeta):
 
 
 class SamlClientPluginMeta(PluginMeta):
-    NAME = None
     # make sure metadata plugins are "local" to ClientPlugin despite parent Metaclass
     _plugins = {}
 

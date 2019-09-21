@@ -4,7 +4,7 @@ from django_saml2_auth.plugins import MetadataPlugin
 
 
 class DefaultMetadataHandler(MetadataPlugin):
-    NAME = 'DEFAULT'
+    KEY = 'DEFAULT'
 
     @classmethod
     def get_metadata(cls):

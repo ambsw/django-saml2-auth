@@ -10,7 +10,7 @@ from django_saml2_auth.views import _idp_error, _get_user, _local_denied, _appro
 
 class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
     """Authenticates user based on SAML object in request"""
-    NAME = 'DEFAULT'
+    KEY = 'DEFAULT'
 
     @classmethod
     def handle_saml_payload(cls, request):

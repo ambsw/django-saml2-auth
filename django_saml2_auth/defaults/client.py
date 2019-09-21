@@ -12,7 +12,7 @@ from django_saml2_auth.views import _get_metadata, _handle_saml_payload
 
 
 class DefaultSamlClientPlugin(SamlClientPlugin):
-    NAME = 'DEFAULT'
+    KEY = 'DEFAULT'
 
     @classmethod
     def get_client(cls, domain):

@@ -17,7 +17,7 @@ except:
 
 class DefaultSigninPlugin(SigninPlugin):
     """Redirect a user to the IdP with an appropriate payload"""
-    NAME = 'DEFAULT'
+    KEY = 'DEFAULT'
 
     @classmethod
     def signin(cls, request):

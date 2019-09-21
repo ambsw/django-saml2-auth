@@ -9,7 +9,7 @@ from django_saml2_auth.views import welcome_view
 
 
 class JwtApprovedPlugin(ApprovedPlugin):
-    NAME = 'JWT'
+    KEY = 'JWT'
 
     @classmethod
     def approved(cls, request, user, new_user=False):
@@ -25,7 +25,7 @@ class JwtApprovedPlugin(ApprovedPlugin):
 
 
 class DefaultApprovedPlugin(ApprovedPlugin):
-    NAME = 'DEFAULT'
+    KEY = 'DEFAULT'
 
     @classmethod
     def approved(cls, request, user, new_user=False):

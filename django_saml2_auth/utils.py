@@ -44,7 +44,8 @@ def get_reverse(objs):
 
 def _handle_plugins(namespace, plugins, method_name, args=()):
     """Generic plugin running architecture"""
-    for name in settings.SAML2_AUTH.get('PLUGINS', {}).get(namespace, ['DEFAULT']):
+    names = settings.SAML2_AUTH.get('PLUGINS', {}).get(namespace, ['DEFAULT'])
+    for name in names:
         plugin = plugins.get_plugin(name=name)
         if plugin is None:
             raise ImproperlyConfigured("SAML2 auth cannot find {} with key:  {}".format(plugins.__name__, plugin))

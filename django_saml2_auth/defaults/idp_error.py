@@ -6,7 +6,7 @@ from django_saml2_auth.views import _idp_error
 
 
 class DefaultIdpErrorPlugin(IdpErrorPlugin):
-    NAME = 'DEFAULT'
+    KEY = 'DEFAULT'
 
     @classmethod
     def error(cls, request, reason=None):

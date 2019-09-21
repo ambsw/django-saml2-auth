@@ -10,7 +10,7 @@ from django_saml2_auth.utils import User
 
 class DefaultCreateUser(CreateUserPlugin):
     """Create a user based on the values in the kwargs"""
-    NAME = 'DEFAULT'
+    KEY = 'DEFAULT'
 
     @classmethod
     def create_user(cls, kwargs):

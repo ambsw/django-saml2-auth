@@ -67,7 +67,7 @@ def error_view(request):
 
 def signin(request):
     """Handles login requests, usually by redirecting users to the SAML IdP"""
-    signals.before_signin.send(signin, request)
+    signals.before_signin.send(signin, request=request)
     return _handle_plugins(
         'SIGNIN',
         plugins=plugins.SigninPlugin,
@@ -78,7 +78,7 @@ def signin(request):
 
 def signout(request):
     """Handles a logout request locally and may or may not forward to IdP"""
-    signals.before_signout.send(signin, request)
+    signals.before_signout.send(signin, request=request)
     return _handle_plugins(
         'SIGNIN',
         plugins=plugins.SignoutPlugin,
@@ -111,7 +111,7 @@ def _approved(request):
 
 def _idp_error(request, reason=None):
     """Generate response to be returned to sender when the IdP denies the authentication"""
-    signals.before_idp_denied.send(_create_new_user, request)
+    signals.before_idp_denied.send(_create_new_user, request=request)
     return _handle_plugins(
         'IDP_DENIED',
         plugins=plugins.IdpErrorPlugin,
@@ -122,7 +122,7 @@ def _idp_error(request, reason=None):
 
 def _local_denied(request, reason=None):
     """Generate response to be returned to sender when the local application denies the authentication"""
-    signals.before_local_denied.send(_create_new_user, request)
+    signals.before_local_denied.send(_create_new_user, request=request)
     return _handle_plugins(
         'LOCAL_DENIED',
         plugins=plugins.LocalDeniedPlugin,
@@ -163,12 +163,12 @@ def _get_metadata():
 
 def _create_new_user(kwargs):
     """Creates a new user in the system based on User attributes in kwargs."""
-    signals.before_create.send(_create_new_user, kwargs)  # intentionally mutable
+    signals.before_create.send(_create_new_user, kwargs=kwargs)  # intentionally mutable
     user = _handle_plugins(
         'CREATE_USER',
         plugins=plugins.CreateUserPlugin,
         method_name=plugins.CreateUserPlugin.create_user.__name__,
         args=(kwargs,)
     )
-    signals.after_create.send(_create_new_user, user)
+    signals.after_create.send(_create_new_user, user=user)
     return user

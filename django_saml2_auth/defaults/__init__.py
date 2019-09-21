@@ -1,3 +1,3 @@
 # import plugins
 # noinspection PyUnresolvedReferences
-from . import acs, approved, client, create_user, error, get_user, idp_error, local_denied, metadata, signin, signout
+from . import approved, client, create_user, get_user, handle_saml, idp_error, local_denied, metadata, signin, signout

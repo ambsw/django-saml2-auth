@@ -1,9 +1,6 @@
 from django.conf.urls import url
 
 from . import views
-# import plugins
-# noinspection PyUnresolvedReferences
-from . import defaults
 
 app_name = 'django_saml2_auth'
 

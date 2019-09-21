@@ -6,7 +6,7 @@ class PluginMeta(type):
 
     def __init__(cls, name, bases, dct):
         super(PluginMeta, cls).__init__(name, bases, dct)
-        if cls.KEY is not None:
+        if __class__.KEY is not None:
             cls._plugins[cls.KEY] = cls
 
     def get_plugin(cls, name):

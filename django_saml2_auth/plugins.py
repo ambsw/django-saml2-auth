@@ -1,10 +1,12 @@
 class PluginMeta(type):
     # stores the plugins for this object
     _plugins = {}
+    NAME = None
 
     def __init__(cls, name, bases, dct):
         super(PluginMeta, cls).__init__(name, bases, dct)
-        cls._plugins[name] = cls
+        if cls.NAME is not None:
+            cls._plugins[cls.NAME] = cls
 
     def get_plugin(cls, name):
         # validate class-dependent config

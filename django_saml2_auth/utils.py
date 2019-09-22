@@ -29,7 +29,7 @@ def get_reverse(objs):
         from django.urls import reverse
     else:
         from django.core.urlresolvers import reverse
-    if objs.__class__.__name__ not in ['list', 'tuple']:
+    if objs.__class__.__name__ not in ['list', 'tuple', 'set']:
         objs = [objs]
 
     for obj in objs:

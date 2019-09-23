@@ -2,10 +2,10 @@ from django.conf import settings
 from django.contrib.auth import login
 from django.utils.module_loading import import_string
 
-from django_saml2_auth import signals
+from django_saml2_auth import signals, utils
 from django_saml2_auth.errors import LocalDenied, IdpError
 from django_saml2_auth.plugins import SamlPayloadPlugin
-from django_saml2_auth.views import _idp_error, _get_user, _local_denied, _approved
+from django_saml2_auth.views import _idp_error, _get_user, _local_denied, _approved, _get_saml_client
 
 
 class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
@@ -26,7 +26,10 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
             target_user.backend = 'django.contrib.auth.backends.ModelBackend'
 
             if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
-                import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(target_user)
+                # must extract user_identity for backwards compatibility
+                client = _get_saml_client(utils.get_current_domain(request))
+                user_identity = utils.get_user_identity(request, client)
+                import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
 
             signals.before_login.call(target_user)
             login(request, target_user)

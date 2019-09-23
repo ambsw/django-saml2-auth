@@ -3,6 +3,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from pkg_resources import parse_version
+from saml2 import entity
+
+from django_saml2_auth.errors import IdpError
 
 User = get_user_model()
 
@@ -40,6 +43,23 @@ def get_reverse(objs):
     raise Exception(
         'We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(
             objs))
+
+
+def get_user_identity(request, saml_client):
+    resp = request.POST.get('SAMLResponse', None)
+
+    if not resp:
+        raise IdpError("SAMLResponse not found in request")
+
+    authn_response = saml_client.parse_authn_request_response(
+        resp, entity.BINDING_HTTP_POST)
+    if authn_response is None:
+        raise IdpError("SAML Client did not find authentication request")
+
+    user_identity = authn_response.get_identity()
+    if user_identity is None:
+        raise IdpError("Identity not found in SAML authentication request")
+    return user_identity
 
 
 def _handle_plugins(namespace, plugins, method_name, args=()):

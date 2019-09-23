@@ -99,13 +99,13 @@ def _handle_saml_payload(request):
 
 
 @login_required
-def _approved(request):
+def _approved(request, user, new_user=False):
     """Handles a successful authentication, including both IdP and local checks"""
     return _handle_plugins(
         'CREATE_USER',
         plugins=plugins.ApprovedPlugin,
         method_name=plugins.ApprovedPlugin.approved.__name__,
-        args=(request,)
+        args=(request, user, new_user)
     )
 
 

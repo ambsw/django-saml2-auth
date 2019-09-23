@@ -34,7 +34,7 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
             signals.before_login.send(DefaultSamlPayloadPlugin, user=target_user)
             login(request, target_user)
             signals.after_login.send(DefaultSamlPayloadPlugin, user=target_user)
-            return _approved(request, target_user)
+            return _approved(request, target_user, is_new_user)
         except IdpError as e:
             return _idp_error(request, e)
         except LocalDenied as e:

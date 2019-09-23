@@ -31,9 +31,9 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
                 user_identity = utils.get_user_identity(request, client)
                 import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
 
-            signals.before_login.call(target_user)
+            signals.before_login.send(DefaultSamlPayloadPlugin, user=target_user)
             login(request, target_user)
-            signals.after_login.call(target_user)
+            signals.after_login.send(DefaultSamlPayloadPlugin, user=target_user)
             return _approved(request, target_user)
         except IdpError as e:
             return _idp_error(request, e)

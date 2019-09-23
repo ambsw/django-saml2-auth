@@ -134,12 +134,15 @@ def _local_denied(request, reason=None):
 def _get_user(request):
     """Gets the user from the SAML payload in the request usually using a client from _get_saml_client and handles
     missing users, including calling _create_new_user if appropriate"""
-    return _handle_plugins(
+    signals.before_get_user.send(request)
+    user = _handle_plugins(
         'GET_USER',
         plugins=plugins.GetUserPlugin,
         method_name=plugins.GetUserPlugin.get_user.__name__,
         args=(request,)
     )
+    signals.after_get_user.send(request, user)
+    return user
 
 
 def _get_saml_client(domain):
@@ -163,12 +166,12 @@ def _get_metadata():
 
 def _create_new_user(kwargs):
     """Creates a new user in the system based on User attributes in kwargs."""
-    signals.before_create.send(_create_new_user, kwargs=kwargs)  # intentionally mutable
+    signals.before_create_user.send(_create_new_user, kwargs=kwargs)  # intentionally mutable
     user = _handle_plugins(
         'CREATE_USER',
         plugins=plugins.CreateUserPlugin,
         method_name=plugins.CreateUserPlugin.create_user.__name__,
         args=(kwargs,)
     )
-    signals.after_create.send(_create_new_user, user=user)
+    signals.after_create_user.send(_create_new_user, user=user)
     return user

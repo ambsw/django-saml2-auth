@@ -134,14 +134,14 @@ def _local_denied(request, reason=None):
 def _get_user(request):
     """Gets the user from the SAML payload in the request usually using a client from _get_saml_client and handles
     missing users, including calling _create_new_user if appropriate"""
-    signals.before_get_user.send(request)
+    signals.before_get_user.send(_get_user, request=request)
     user = _handle_plugins(
         'GET_USER',
         plugins=plugins.GetUserPlugin,
         method_name=plugins.GetUserPlugin.get_user.__name__,
         args=(request,)
     )
-    signals.after_get_user.send(request, user)
+    signals.after_get_user.send(_get_user, request=request, user=user)
     return user
 
 

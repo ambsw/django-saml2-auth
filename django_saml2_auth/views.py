@@ -80,7 +80,7 @@ def signout(request):
     """Handles a logout request locally and may or may not forward to IdP"""
     signals.before_signout.send(signin, request=request)
     return _handle_plugins(
-        'SIGNIN',
+        'SIGNOUT',
         plugins=plugins.SignoutPlugin,
         method_name=plugins.SignoutPlugin.signout.__name__,
         args=(request,)
@@ -91,7 +91,7 @@ def signout(request):
 def _handle_saml_payload(request):
     """Accepts and handles a request from an IDP, by default depending on _get_user"""
     return _handle_plugins(
-        'SIGNIN',
+        'HANDLE_SAML',
         plugins=plugins.SamlPayloadPlugin,
         method_name=plugins.SamlPayloadPlugin.handle_saml_payload.__name__,
         args=(request,)
@@ -102,7 +102,7 @@ def _handle_saml_payload(request):
 def _approved(request, user, new_user=False):
     """Handles a successful authentication, including both IdP and local checks"""
     return _handle_plugins(
-        'CREATE_USER',
+        'APPROVED',
         plugins=plugins.ApprovedPlugin,
         method_name=plugins.ApprovedPlugin.approved.__name__,
         args=(request, user, new_user)
@@ -113,7 +113,7 @@ def _idp_error(request, reason=None):
     """Generate response to be returned to sender when the IdP denies the authentication"""
     signals.before_idp_denied.send(_create_new_user, request=request)
     return _handle_plugins(
-        'IDP_DENIED',
+        'IDP_ERROR',
         plugins=plugins.IdpErrorPlugin,
         method_name=plugins.IdpErrorPlugin.error.__name__,
         args=(request, reason)
@@ -148,7 +148,7 @@ def _get_user(request):
 def _get_saml_client(domain):
     """Genereate a class able to process SAML data, normally configured by _get_metadata"""
     return _handle_plugins(
-        'CREATE_USER',
+        'SAML_CLIENT',
         plugins=plugins.SamlClientPlugin,
         method_name=plugins.SamlClientPlugin.get_client.__name__,
         args=(domain,)

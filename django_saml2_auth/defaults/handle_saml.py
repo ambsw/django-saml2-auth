@@ -28,7 +28,11 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
         except LocalDenied as e:
             return _local_denied(request, e)
 
+        # don't lose next URL during flush
+        next_url = request.session.get('login_next_url', None)
         request.session.flush()
+        if next_url is not None:
+            request.session['login_next_url'] = next_url
 
         if not target_user.is_active:
             return _local_denied(request, LocalDenied("User is not active."))

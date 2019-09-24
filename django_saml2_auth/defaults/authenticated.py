@@ -1,9 +1,10 @@
 from django.conf import settings
+from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from django.template import TemplateDoesNotExist
 from rest_auth.utils import jwt_encode
 
-from django_saml2_auth import utils
+from django_saml2_auth import utils, signals
 from django_saml2_auth.plugins import ApprovedPlugin
 from django_saml2_auth.views import welcome_view
 
@@ -12,7 +13,7 @@ class JwtApprovedPlugin(ApprovedPlugin):
     KEY = 'JWT'
 
     @classmethod
-    def approved(cls, request, user, new_user=False):
+    def authenticated(cls, request, user, new_user=False):
         if settings.SAML2_AUTH.get('USE_JWT') is True:
             # We use JWT auth send token to frontend
             jwt_token = jwt_encode(user)
@@ -28,8 +29,12 @@ class DefaultApprovedPlugin(ApprovedPlugin):
     KEY = 'DEFAULT'
 
     @classmethod
-    def approved(cls, request, user, new_user=False):
-        response = JwtApprovedPlugin.approved(request, user)
+    def authenticated(cls, request, user, new_user=False):
+        signals.before_login.send(DefaultApprovedPlugin, user=user)
+        login(request, user)
+        signals.after_login.send(DefaultApprovedPlugin, user=user)
+
+        response = JwtApprovedPlugin.authenticated(request, user)
         if response is not None:
             return response
 

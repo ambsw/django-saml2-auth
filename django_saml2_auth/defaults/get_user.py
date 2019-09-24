@@ -12,11 +12,8 @@ class DefaultGetUserPlugin(GetUserPlugin):
     KEY = 'DEFAULT'
 
     @classmethod
-    def get_user(cls, request):
+    def get_user(cls, user_identity):
         """Return the user or raise an exception"""
-        client = _get_saml_client(utils.get_current_domain(request))
-        user_identity = utils.get_user_identity(request, client)
-
         user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
         user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('username', 'UserName')][0]
         user_first_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('first_name', 'FirstName')][0]

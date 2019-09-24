@@ -99,12 +99,12 @@ def _handle_saml_payload(request):
 
 
 @login_required
-def _approved(request, user, new_user=False):
+def _authenticated(request, user, new_user=False):
     """Handles a successful authentication, including both IdP and local checks"""
     return _handle_plugins(
-        'APPROVED',
+        'AUTHENTICATED',
         plugins=plugins.ApprovedPlugin,
-        method_name=plugins.ApprovedPlugin.approved.__name__,
+        method_name=plugins.ApprovedPlugin.authenticated.__name__,
         args=(request, user, new_user)
     )
 
@@ -131,22 +131,22 @@ def _local_denied(request, reason=None):
     )
 
 
-def _get_user(request):
+def _get_user(user_identity):
     """Gets the user from the SAML payload in the request usually using a client from _get_saml_client and handles
     missing users, including calling _create_new_user if appropriate"""
-    signals.before_get_user.send(_get_user, request=request)
+    signals.before_get_user.send(_get_user, user_identity=user_identity)
     user = _handle_plugins(
         'GET_USER',
         plugins=plugins.GetUserPlugin,
         method_name=plugins.GetUserPlugin.get_user.__name__,
-        args=(request,)
+        args=(user_identity,)
     )
-    signals.after_get_user.send(_get_user, request=request, user=user)
+    signals.after_get_user.send(_get_user, user_identity=user_identity, user=user)
     return user
 
 
 def _get_saml_client(domain):
-    """Genereate a class able to process SAML data, normally configured by _get_metadata"""
+    """Generate a class able to process SAML data, normally configured by _get_metadata"""
     return _handle_plugins(
         'SAML_CLIENT',
         plugins=plugins.SamlClientPlugin,

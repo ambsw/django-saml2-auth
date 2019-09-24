@@ -58,7 +58,7 @@ class ApprovedPluginMeta(PluginMeta):
 class ApprovedPlugin(object, metaclass=ApprovedPluginMeta):
     """Redirects a user after a successful login."""
     @classmethod
-    def approved(cls, request, user, new_user=False):
+    def authenticated(cls, request, user, new_user=False):
         raise NotImplementedError
 
 

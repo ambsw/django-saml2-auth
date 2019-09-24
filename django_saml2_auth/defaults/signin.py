@@ -39,6 +39,9 @@ class DefaultSigninPlugin(SigninPlugin):
         if not is_safe_url(*args):
             return _local_denied(request)
 
+        if request.user is not None and request.user.is_authenticated():
+            return HttpResponseRedirect(next_url)
+
         request.session['login_next_url'] = next_url
 
         saml_client = _get_saml_client(utils.get_current_domain(request))

@@ -103,8 +103,8 @@ def _authenticated(request, user, new_user=False):
     """Handles a successful authentication, including both IdP and local checks"""
     return _handle_plugins(
         'AUTHENTICATED',
-        plugins=plugins.ApprovedPlugin,
-        method_name=plugins.ApprovedPlugin.authenticated.__name__,
+        plugins=plugins.AuthenticatedPlugin,
+        method_name=plugins.AuthenticatedPlugin.authenticated.__name__,
         args=(request, user, new_user)
     )
 

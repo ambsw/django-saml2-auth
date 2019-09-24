@@ -50,12 +50,12 @@ class SamlPayloadPlugin(object, metaclass=SamlPayloadPluginMeta):
         raise NotImplementedError
 
 
-class ApprovedPluginMeta(PluginMeta):
+class AuthenticatedPluginMeta(PluginMeta):
     # make sure metadata plugins are "local" to ApprovedPlugin despite parent Metaclass
     _plugins = {}
 
 
-class ApprovedPlugin(object, metaclass=ApprovedPluginMeta):
+class AuthenticatedPlugin(object, metaclass=AuthenticatedPluginMeta):
     """Redirects a user after a successful login."""
     @classmethod
     def authenticated(cls, request, user, new_user=False):

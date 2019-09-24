@@ -13,39 +13,42 @@ from django_saml2_auth.views import _get_metadata, _handle_saml_payload
 
 class DefaultSamlClientPlugin(SamlClientPlugin):
     KEY = 'DEFAULT'
+    # use a singleton since SAML2 stores user data on the object
+    _client = None
 
     @classmethod
     def get_client(cls, domain):
-        acs_url = domain + utils.get_reverse({_handle_saml_payload, 'acs', 'django_saml2_auth:acs'})
-        metadata = _get_metadata()
+        if cls._client is None:
+            acs_url = domain + utils.get_reverse({_handle_saml_payload, 'acs', 'django_saml2_auth:acs'})
+            metadata = _get_metadata()
 
-        saml_settings = {
-            'metadata': metadata,
-            'service': {
-                'sp': {
-                    'endpoints': {
-                        'assertion_consumer_service': [
-                            (acs_url, BINDING_HTTP_REDIRECT),
-                            (acs_url, BINDING_HTTP_POST)
-                        ],
+            saml_settings = {
+                'metadata': metadata,
+                'service': {
+                    'sp': {
+                        'endpoints': {
+                            'assertion_consumer_service': [
+                                (acs_url, BINDING_HTTP_REDIRECT),
+                                (acs_url, BINDING_HTTP_POST)
+                            ],
+                        },
+                        'allow_unsolicited': True,
+                        'authn_requests_signed': False,
+                        'logout_requests_signed': True,
+                        'want_assertions_signed': True,
+                        'want_response_signed': False,
                     },
-                    'allow_unsolicited': True,
-                    'authn_requests_signed': False,
-                    'logout_requests_signed': True,
-                    'want_assertions_signed': True,
-                    'want_response_signed': False,
                 },
-            },
-        }
+            }
 
-        if 'ENTITY_ID' in settings.SAML2_AUTH:
-            saml_settings['entityid'] = settings.SAML2_AUTH['ENTITY_ID']
+            if 'ENTITY_ID' in settings.SAML2_AUTH:
+                saml_settings['entityid'] = settings.SAML2_AUTH['ENTITY_ID']
 
-        if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
-            saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
+            if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
+                saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
 
-        spConfig = Saml2Config()
-        spConfig.load(saml_settings)
-        spConfig.allow_unknown_attributes = True
-        saml_client = Saml2Client(config=spConfig)
-        return saml_client
+            spConfig = Saml2Config()
+            spConfig.load(saml_settings)
+            spConfig.allow_unknown_attributes = True
+            cls._client = Saml2Client(config=spConfig)
+        return cls._client

@@ -25,7 +25,7 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
                 raise LocalDenied("User is not active.")
 
             target_user.backend = 'django.contrib.auth.backends.ModelBackend'
-            request.session['name_id'] = user_identity['name_id']
+            request.session['name_id'] = user_identity.authn.name_id
 
             if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
                 import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)

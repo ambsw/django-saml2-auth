@@ -59,6 +59,7 @@ def get_user_identity(request, saml_client):
     user_identity = authn_response.get_identity()
     if user_identity is None:
         raise IdpError("Identity not found in SAML authentication request")
+    user_identity.authn = authn_response
     return user_identity
 
 

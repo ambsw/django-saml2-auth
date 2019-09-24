@@ -1,11 +1,10 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from django_saml2_auth import utils
 from django_saml2_auth.errors import LocalDenied
 from django_saml2_auth.plugins import GetUserPlugin
 from django_saml2_auth.utils import User
-from django_saml2_auth.views import _get_saml_client, _create_new_user
+from django_saml2_auth.views import _create_new_user
 
 
 class DefaultGetUserPlugin(GetUserPlugin):

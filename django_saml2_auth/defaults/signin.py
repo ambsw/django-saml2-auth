@@ -39,7 +39,7 @@ class DefaultSigninPlugin(SigninPlugin):
         if not is_safe_url(*args):
             return _local_denied(request)
 
-        if request.user is not None and request.user.is_authenticated():
+        if request.user is not None and request.user.is_authenticated:
             return HttpResponseRedirect(next_url)
 
         request.session['login_next_url'] = next_url

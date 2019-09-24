@@ -15,7 +15,10 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
     def handle_saml_payload(cls, request):
         try:
             client = _get_saml_client(utils.get_current_domain(request))
-            user_identity = utils.get_user_identity(request, client)
+            authn_response = utils.get_authn(request, client)
+            user_identity = authn_response.get_identity()
+            if user_identity is None:
+                raise IdpError("Identity not found in SAML authentication request")
             # raises exceptions to achieve original response behavior
             target_user, is_new_user = _get_user(user_identity)
 
@@ -25,7 +28,7 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
                 raise LocalDenied("User is not active.")
 
             target_user.backend = 'django.contrib.auth.backends.ModelBackend'
-            request.session['name_id'] = user_identity.authn.name_id
+            request.session['name_id'] = authn_response.name_id
 
             if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
                 import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)

@@ -45,7 +45,7 @@ def get_reverse(objs):
             objs))
 
 
-def get_user_identity(request, saml_client):
+def get_authn(request, saml_client):
     resp = request.POST.get('SAMLResponse', None)
 
     if not resp:
@@ -55,12 +55,7 @@ def get_user_identity(request, saml_client):
         resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
         raise IdpError("SAML Client did not find authentication request")
-
-    user_identity = authn_response.get_identity()
-    if user_identity is None:
-        raise IdpError("Identity not found in SAML authentication request")
-    user_identity.authn = authn_response
-    return user_identity
+    return authn_response
 
 
 def _handle_plugins(namespace, plugins, method_name, args=()):

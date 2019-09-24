@@ -53,6 +53,7 @@ def signout_view(request):
     return render(request, 'django_saml2_auth/signout.html')
 
 
+@login_required()
 def welcome_view(request):
     return render(request, 'django_saml2_auth/welcome.html', {'user': request.user})
 
@@ -98,7 +99,6 @@ def _handle_saml_payload(request):
     )
 
 
-@login_required
 def _authenticated(request, user, new_user=False):
     """Handles a successful authentication, including both IdP and local checks"""
     return _handle_plugins(

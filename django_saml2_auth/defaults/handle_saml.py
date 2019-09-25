@@ -39,7 +39,7 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
             return _local_denied(request, LocalDenied("User is not active."))
 
         # store user for SLO
-        logging.info(authn.get_subject())
+        logging.warning(authn.get_subject())
         request.session['name_id'] = code(authn.get_subject())
 
         # must be here for legacy access to user_identity

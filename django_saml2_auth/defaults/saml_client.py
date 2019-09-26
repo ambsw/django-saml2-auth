@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.cache import caches, InvalidCacheBackendError
 from saml2 import (
     BINDING_HTTP_POST,
     BINDING_HTTP_REDIRECT,
@@ -53,5 +54,14 @@ class DefaultSamlClientPlugin(SamlClientPlugin):
             spConfig = Saml2Config()
             spConfig.load(saml_settings)
             spConfig.allow_unknown_attributes = True
-            cls._client = Saml2Client(config=spConfig)
+
+            # try to use a centralized identity cache
+            cache = None
+            try:
+                cache_name = settings.SAML2_AUTH.get('cache', 'default')
+                cache = caches[cache_name]
+            except InvalidCacheBackendError:
+                pass
+
+            cls._client = Saml2Client(config=spConfig, identity_cache=cache)
         return cls._client

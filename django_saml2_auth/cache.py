@@ -50,6 +50,10 @@ class DjangoCache(Cache):
         if isinstance(cache, BaseCache):
             # proxy calls to Django's BaseCache interface
             self._db = AssignmentProxy(cache)
+            # the underlying implementation expects mutated object to be saved so our cache handles this in sync()
+            self._sync = True
         elif cache is not None:
             self._db = cache
-            self._sync = True
+            # the underlying implementation expects mutated object to be saved so caches may handle this in sync()
+            if hasattr(cache, 'sync'):
+                self._sync = True

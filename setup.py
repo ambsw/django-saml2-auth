@@ -19,7 +19,9 @@ setup(
     version='2.2.1',
 
     description='Django SAML2 Authentication Made Easy. Easily integrate with SAML2 SSO identity providers like Okta',
+    # requires unix line endings
     long_description=long_description,
+    long_description_content_type="text/markdown",
 
     url='https://github.com/fangli/django-saml2-auth',
 

@@ -8,6 +8,7 @@ from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 
 from django_saml2_auth import utils
+from django_saml2_auth.cache import DjangoCache
 from django_saml2_auth.plugins import SamlClientPlugin
 from django_saml2_auth.views import _get_metadata, _handle_saml_payload
 
@@ -59,7 +60,7 @@ class DefaultSamlClientPlugin(SamlClientPlugin):
             cache = None
             try:
                 cache_name = settings.SAML2_AUTH.get('CACHE', 'default')
-                cache = caches[cache_name]
+                cache = DjangoCache(cache=caches[cache_name])
             except InvalidCacheBackendError:
                 pass
 

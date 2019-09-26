@@ -58,7 +58,7 @@ class DefaultSamlClientPlugin(SamlClientPlugin):
             # try to use a centralized identity cache
             cache = None
             try:
-                cache_name = settings.SAML2_AUTH.get('cache', 'default')
+                cache_name = settings.SAML2_AUTH.get('CACHE', 'default')
                 cache = caches[cache_name]
             except InvalidCacheBackendError:
                 pass

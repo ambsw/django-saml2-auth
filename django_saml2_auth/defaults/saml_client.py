@@ -50,7 +50,7 @@ class DefaultSamlClientPlugin(SamlClientPlugin):
             if 'ACCEPTED_TIME_DIFF' in settings.SAML2_AUTH:
                 saml_settings['accepted_time_diff'] = settings.SAML2_AUTH['ACCEPTED_TIME_DIFF']
 
-                spConfig = Saml2Config()
+            spConfig = Saml2Config()
             spConfig.load(saml_settings)
             spConfig.allow_unknown_attributes = True
             cls._client = Saml2Client(config=spConfig)

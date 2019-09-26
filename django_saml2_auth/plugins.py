@@ -1,3 +1,6 @@
+import logging
+
+
 class PluginMeta(type):
     # stores the plugins for this object
     _plugins = {}
@@ -8,6 +11,7 @@ class PluginMeta(type):
         super(PluginMeta, cls).__init__(name, bases, dct)
         if cls.KEY is not None:
             cls._plugins[cls.KEY] = cls
+        cls.logger = logging.getLogger(name)
 
     def get_plugin(cls, name):
         # validate class-dependent config

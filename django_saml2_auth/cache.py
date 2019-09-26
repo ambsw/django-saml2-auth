@@ -5,6 +5,7 @@ from saml2.cache import Cache
 class AssignmentProxy(object):
     def __init__(self, nested: BaseCache):
         object.__setattr__(self, '_obj', nested)
+        object.__setattr__(self, '_accessed', {})
 
     def __getattribute__(self, name):
         return getattr(object.__getattribute__(self, "_obj"), name)
@@ -28,10 +29,19 @@ class AssignmentProxy(object):
         return hash(object.__getattribute__(self, "_obj"))
 
     def __setitem__(self, k, v):
+        # keep track of this value so we can commit mutation on _sync_db
+        object.__getattribute__(self, '_accessed')[k] = v
         object.__getattribute__(self, '_obj').set(k, v)
 
     def __getitem__(self, k):
-        return object.__getattribute__(self, '_obj').get(k)
+        v = object.__getattribute__(self, '_obj').get(k)
+        # keep track of this value so we can commit mutation on _sync_db
+        object.__getattribute__(self, '_accessed')[k] = v
+        return v
+
+    def sync(self):
+        for k, v in object.__getattribute__(self, '_accessed').items:
+            self[k] = v
 
     def __delitem__(self, k):
         object.__getattribute__(self, '_obj').delete(k)

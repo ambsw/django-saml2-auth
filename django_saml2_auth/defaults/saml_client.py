@@ -39,7 +39,7 @@ class DefaultSamlClientPlugin(SamlClientPlugin):
                         'logout_requests_signed': settings.SAML2_AUTH.get('LOGOUT_REQUESTS_SIGNED', True),
                         'want_assertions_signed': True,
                         'want_response_signed': False,
-                        'force_authn': settings.SAML2_AUTH.get('FORCE_AUTHN'),
+                        'force_authn': settings.SAML2_AUTH.get('ALWAYS_AUTHENTICATE'),
                     },
                 },
             }

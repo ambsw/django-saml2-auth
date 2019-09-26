@@ -8,6 +8,12 @@ class AssignmentProxy(object):
         object.__setattr__(self, '_accessed', {})
 
     def __getattribute__(self, name):
+        if name[0] != '_':
+            try:
+                # allow local overloads (i.e. sync)
+                return object.__getattribute__(self, name)
+            except AttributeError:
+                pass
         return getattr(object.__getattribute__(self, "_obj"), name)
 
     def __delattr__(self, name):
@@ -40,7 +46,7 @@ class AssignmentProxy(object):
         return v
 
     def sync(self):
-        for k, v in object.__getattribute__(self, '_accessed').items:
+        for k, v in object.__getattribute__(self, '_accessed').items():
             self[k] = v
 
     def __delitem__(self, k):

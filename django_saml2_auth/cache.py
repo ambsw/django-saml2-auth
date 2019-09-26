@@ -52,3 +52,4 @@ class DjangoCache(Cache):
             self._db = AssignmentProxy(cache)
         elif cache is not None:
             self._db = cache
+            self._sync = True

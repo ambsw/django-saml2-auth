@@ -47,7 +47,10 @@ class DefaultSamlClientPlugin(SamlClientPlugin):
             if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
                 saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
 
-            spConfig = Saml2Config()
+            if 'ACCEPTED_TIME_DIFF' in settings.SAML2_AUTH:
+                saml_settings['accepted_time_diff'] = settings.SAML2_AUTH['ACCEPTED_TIME_DIFF']
+
+                spConfig = Saml2Config()
             spConfig.load(saml_settings)
             spConfig.allow_unknown_attributes = True
             cls._client = Saml2Client(config=spConfig)

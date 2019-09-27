@@ -63,3 +63,6 @@ target/
 
 # JetBrains IDEs
 .idea
+
+# Test symlink
+tests/django_saml2_auth/*

@@ -4,8 +4,10 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from pkg_resources import parse_version
 from saml2 import entity
+from saml2.ident import code
 
 from django_saml2_auth.errors import IdpError
+from django_saml2_auth.views import _get_saml_client
 
 User = get_user_model()
 
@@ -69,3 +71,10 @@ def _handle_plugins(namespace, plugins, method_name, args=()):
         if response is not None:
             return response
     raise ImproperlyConfigured("{} plugins did not return a valid object".format(plugins.__name__))
+
+
+def store_name_id(request):
+    """Helper function to cache name_id in session.  Available for use by plugins (not core)."""
+    client = _get_saml_client(get_current_domain(request))
+    authn = get_authn(request, client)
+    request.session['name_id'] = code(authn.get_subject())

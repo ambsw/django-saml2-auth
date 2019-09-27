@@ -101,12 +101,15 @@ def _handle_saml_payload(request):
 
 def _authenticated(request, user, new_user=False):
     """Handles a successful authentication, including both IdP and local checks"""
-    return _handle_plugins(
+    signals.before_authenticated.send(_authenticated, request=request, user=user)
+    response = _handle_plugins(
         'AUTHENTICATED',
         plugins=plugins.AuthenticatedPlugin,
         method_name=plugins.AuthenticatedPlugin.authenticated.__name__,
         args=(request, user, new_user)
     )
+    signals.after_authenticated.send(_authenticated, response=response)
+    return response
 
 
 def _idp_error(request, reason=None):

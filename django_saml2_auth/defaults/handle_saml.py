@@ -1,7 +1,5 @@
-import logging
 from django.conf import settings
 from django.utils.module_loading import import_string
-from saml2.ident import code
 
 from django_saml2_auth import utils
 from django_saml2_auth.errors import LocalDenied, IdpError
@@ -37,10 +35,6 @@ class DefaultSamlPayloadPlugin(SamlPayloadPlugin):
 
         if not target_user.is_active:
             return _local_denied(request, LocalDenied("User is not active."))
-
-        # store user for SLO
-        logging.warning(authn.get_subject())
-        request.session['name_id'] = code(authn.get_subject())
 
         # must be here for legacy access to user_identity
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):

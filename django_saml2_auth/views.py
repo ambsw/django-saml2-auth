@@ -158,6 +158,18 @@ def _get_saml_client(domain):
     )
 
 
+def _get_config(domain):
+    """Constructs SAML Config dictionary, usually based on the settings file"""
+    config = _handle_plugins(
+        'CONFIG',
+        plugins=plugins.ConfigPlugin,
+        method_name=plugins.ConfigPlugin.get_config.__name__,
+        args=(domain,)
+    )
+    signals.after_get_config.send(_get_config, config=config)
+    return config
+
+
 def _get_metadata():
     """Constructs appropriate SAML metadata, usually based on the settings file"""
     return _handle_plugins(

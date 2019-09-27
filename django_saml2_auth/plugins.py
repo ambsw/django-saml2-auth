@@ -138,6 +138,18 @@ class MetadataPlugin(object, metaclass=MetadataPluginMeta):
         raise NotImplementedError
 
 
+class ConfigPluginMeta(PluginMeta):
+    # make sure metadata plugins are "local" to ConfigPluginMeta even though we share the parent architecture
+    _plugins = {}
+
+
+class ConfigPlugin(object, metaclass=ConfigPluginMeta):
+    """Provides the SAML metadata to be used for initializing a SAML Client."""
+    @classmethod
+    def get_config(cls, domain):
+        raise NotImplementedError
+
+
 class SamlClientPluginMeta(PluginMeta):
     # make sure metadata plugins are "local" to ClientPlugin despite parent Metaclass
     _plugins = {}

@@ -3,7 +3,7 @@ from saml2 import BINDING_HTTP_REDIRECT, BINDING_HTTP_POST
 
 from django_saml2_auth import utils
 from django_saml2_auth.plugins import ConfigPlugin
-from django_saml2_auth.views import _get_metadata, _handle_saml_payload
+from django_saml2_auth.views import _get_metadata, _assertion_consumer_service
 
 
 class DefaultConfigPlugin(ConfigPlugin):
@@ -11,7 +11,7 @@ class DefaultConfigPlugin(ConfigPlugin):
 
     @classmethod
     def get_config(cls, domain):
-        acs_url = domain + utils.get_reverse({_handle_saml_payload, 'acs', 'django_saml2_auth:acs'})
+        acs_url = domain + utils.get_reverse({_assertion_consumer_service, 'acs', 'django_saml2_auth:acs'})
         metadata = _get_metadata()
 
         saml_settings = {
@@ -27,8 +27,9 @@ class DefaultConfigPlugin(ConfigPlugin):
                     'allow_unsolicited': True,
                     'authn_requests_signed': False,
                     'logout_requests_signed': True,
-                    'want_assertions_signed': True,
+                    'want_assertions_signed': False,
                     'want_response_signed': False,
+                    'want_assertions_or_response_signed': True,
                     'force_authn': settings.SAML2_AUTH.get('ALWAYS_AUTHENTICATE', False),
                 },
             },

@@ -1,16 +1,11 @@
 from django.conf import settings
 from django.core.cache import caches, InvalidCacheBackendError
-from saml2 import (
-    BINDING_HTTP_POST,
-    BINDING_HTTP_REDIRECT,
-)
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 
-from django_saml2_auth import utils
 from django_saml2_auth.cache import DjangoCache
 from django_saml2_auth.plugins import SamlClientPlugin
-from django_saml2_auth.views import _get_metadata, _handle_saml_payload, _get_config
+from django_saml2_auth.views import _get_config
 
 
 class DefaultSamlClientPlugin(SamlClientPlugin):

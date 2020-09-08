@@ -89,7 +89,7 @@ def signout(request):
 
 
 @csrf_exempt
-def _handle_saml_payload(request):
+def _assertion_consumer_service(request):
     """Accepts and handles a request from an IDP, by default depending on _get_user"""
     return _handle_plugins(
         'HANDLE_SAML',
